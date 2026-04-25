@@ -4,9 +4,7 @@
 
 name: Release
 on:
-  release:
-    types: [ prereleased, released ]
-
+  workflow_dispatch:
 jobs:
 
   # Prepare and publish the plugin to JetBrains Marketplace repository
