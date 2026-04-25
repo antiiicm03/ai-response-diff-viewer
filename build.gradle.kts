@@ -55,6 +55,10 @@ tasks {
         enabled = false
     }
 
+    instrumentTestCode {
+        enabled = false
+    }
+
     publishPlugin {
         dependsOn(patchChangelog)
     }
