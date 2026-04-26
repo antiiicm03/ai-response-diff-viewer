@@ -1,9 +1,9 @@
 package com.github.antiiicm03.airesponsediffviewer.orchestrator
 
 import com.github.antiiicm03.airesponsediffviewer.model.AiResponse
+import com.github.antiiicm03.airesponsediffviewer.model.DiffSession
 import com.github.antiiicm03.airesponsediffviewer.service.CodeBlockParser
 import com.github.antiiicm03.airesponsediffviewer.service.ContextResolver
-import com.github.antiiicm03.airesponsediffviewer.service.DiffService
 import com.github.antiiicm03.airesponsediffviewer.service.DiffViewerError
 import com.github.antiiicm03.airesponsediffviewer.service.DiffViewerManager
 import com.github.antiiicm03.airesponsediffviewer.service.ErrorHandler
@@ -13,7 +13,6 @@ import com.github.antiiicm03.airesponsediffviewer.service.ErrorHandler
 class DiffOrchestrator(
     private val parser: CodeBlockParser,
     private val resolver: ContextResolver,
-    private val diffService: DiffService,
     private val viewer: DiffViewerManager,
     private val errorHandler: ErrorHandler
 ) {
@@ -32,9 +31,11 @@ class DiffOrchestrator(
             return
         }
 
-        val session = diffService.prepareDiff(
-            original = target.code,
-            suggested = blocks.first().content
+        val session = DiffSession(
+            originalCode = target.code,
+            suggestedCode = blocks.first().content,
+            filePath = target.filePath,
+            language = blocks.first().language
         )
 
         viewer.openDiff(session)
