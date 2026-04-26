@@ -7,6 +7,7 @@ import com.github.antiiicm03.airesponsediffviewer.service.impl.NotificationError
 import com.github.antiiicm03.airesponsediffviewer.service.impl.EditorContextResolver
 import com.github.antiiicm03.airesponsediffviewer.service.DiffViewerError
 import com.github.antiiicm03.airesponsediffviewer.service.DiffViewerManager
+import com.github.antiiicm03.airesponsediffviewer.service.impl.IntellijDiffViewerManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
@@ -36,16 +37,12 @@ class AiDiffPanel(private val project: Project){
     private val parser = MarkdownCodeBlockParser()
     private val resolver = EditorContextResolver(project)
     private val errorHandler = NotificationErrorHandler(project)
-
-    private val placeHolderViewer = DiffViewerManager { session ->
-        statusLabel.text = "Ready to diff: ${session.originalCode.lines().size} vs " +
-                "${session.suggestedCode.lines().size} lines"
-    }
+    private val viewer = IntellijDiffViewerManager(project)
 
     private val orchestrator = DiffOrchestrator(
         parser = parser,
         resolver = resolver,
-        viewer = placeHolderViewer,
+        viewer = viewer,
         errorHandler = errorHandler
     )
 
