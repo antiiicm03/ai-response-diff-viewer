@@ -103,8 +103,13 @@ Errors are modeled as `sealed class DiffViewerError`, which forces exhaustive ha
 - `DiffSession` assembled and passed through the orchestrator pipeline
 - ToolWindow fully delegates to orchestrator — zero business logic in UI layer
 
+### Phase 5 — Diff Engine & Native Diff Viewer 
+- `IntelliJDiffViewerManager` implemented using IntelliJ's native diff API
+- `DiffContentFactory` creates typed content from both code sides
+- `SimpleDiffRequest` opens side-by-side diff with clear labels
+- Full pipeline now functional: paste → parse → resolve → diff
+
 ### In Progress
-- **Phase 5** — IntelliJ native diff viewer integration
 - **Phase 6** — Accept / Reject apply flow with undo/redo
 - **Phase 7** — Error handling polish and edge case coverage
 
