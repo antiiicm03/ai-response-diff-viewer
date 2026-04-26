@@ -1,10 +1,12 @@
 package com.github.antiiicm03.airesponsediffviewer.toolWindow
 
 import com.github.antiiicm03.airesponsediffviewer.model.AiResponse
+import com.github.antiiicm03.airesponsediffviewer.orchestrator.DiffOrchestrator
 import com.github.antiiicm03.airesponsediffviewer.service.impl.MarkdownCodeBlockParser
 import com.github.antiiicm03.airesponsediffviewer.service.impl.NotificationErrorHandler
+import com.github.antiiicm03.airesponsediffviewer.service.impl.EditorContextResolver
 import com.github.antiiicm03.airesponsediffviewer.service.DiffViewerError
-import com.intellij.diff.comparison.trimEnd
+import com.github.antiiicm03.airesponsediffviewer.service.DiffViewerManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
@@ -17,7 +19,6 @@ import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.BorderFactory
 import javax.swing.JButton
-import javax.swing.JPanel
 
 class AiDiffToolWindowFactory : ToolWindowFactory {
 
@@ -33,7 +34,20 @@ class AiDiffToolWindowFactory : ToolWindowFactory {
 
 class AiDiffPanel(private val project: Project){
     private val parser = MarkdownCodeBlockParser()
+    private val resolver = EditorContextResolver(project)
     private val errorHandler = NotificationErrorHandler(project)
+
+    private val placeHolderViewer = DiffViewerManager { session ->
+        statusLabel.text = "Ready to diff: ${session.originalCode.lines().size} vs " +
+                "${session.suggestedCode.lines().size} lines"
+    }
+
+    private val orchestrator = DiffOrchestrator(
+        parser = parser,
+        resolver = resolver,
+        viewer = placeHolderViewer,
+        errorHandler = errorHandler
+    )
 
     private val responseTextArea = JBTextArea().apply {
         lineWrap = true
@@ -73,18 +87,6 @@ class AiDiffPanel(private val project: Project){
             statusLabel.text = "Error: empty response"
             return
         }
-
-        val response = AiResponse(rawText)
-        val blocks = parser.extractCodeBlocks(response)
-
-        if (blocks.isEmpty()) {
-            errorHandler.handle(DiffViewerError.NoCodeBlockFound)
-            statusLabel.text = "Error: no code block found"
-            return
-        }
-
-        val firstBlock = blocks.first()
-        val langInfo = firstBlock.language ?: "unknown"
-        statusLabel.text = "Found ${blocks.size} block(s) - language $langInfo"
+        orchestrator.run(AiResponse(rawText))
     }
 }
