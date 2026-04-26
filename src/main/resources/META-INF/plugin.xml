@@ -7,9 +7,14 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow
-                factoryClass="com.github.antiiicm03.airesponsediffviewer.toolWindow.AiDiffToolWindowFactory"
-                id="AI Diff Viewer"
-                anchor="bottom"
-                icon="AllIcons.Actions.Diff"/>
+                factoryClass = "com.github.antiiicm03.airesponsediffviewer.toolWindow.AiDiffToolWindowFactory"
+                id = "AI Diff Viewer"
+                anchor = "bottom"
+                icon = "AllIcons.Actions.Diff" />
+
+        <notificationGroup
+                id = "AI Diff Viewer"
+                displayType = "BALLOON"
+                isLogByDefault = "true" />
     </extensions>
 </idea-plugin>
