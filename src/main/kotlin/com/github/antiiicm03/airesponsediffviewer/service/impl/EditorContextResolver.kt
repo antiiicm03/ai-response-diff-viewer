@@ -2,13 +2,19 @@ package com.github.antiiicm03.airesponsediffviewer.service.impl
 
 import com.github.antiiicm03.airesponsediffviewer.model.TargetContext
 import com.github.antiiicm03.airesponsediffviewer.service.ContextResolver
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 
 class EditorContextResolver(private val project: Project) : ContextResolver {
+    var lastResolvedDocument: Document? = null
+        private set
+
     override fun resolveTarget(): TargetContext? {
         val editor = getCurrentEditor() ?: return null
+
+        lastResolvedDocument = editor.document
 
         val selectedText = getSelectedText(editor)
         if (selectedText != null) {

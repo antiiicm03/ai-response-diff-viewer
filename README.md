@@ -109,8 +109,14 @@ Errors are modeled as `sealed class DiffViewerError`, which forces exhaustive ha
 - `SimpleDiffRequest` opens side-by-side diff with clear labels
 - Full pipeline now functional: paste → parse → resolve → diff
 
+### Phase 6 — Apply Layer 
+- `IntelliJFileApplyService` implemented with `WriteCommandAction` for safe file modification
+- Document reference captured at context resolution time, not at apply time
+- Accept flow applies AI suggestion to the active file with full undo/redo support
+- Reject flow clears state without touching the file
+- Accept / Reject buttons disabled until active diff session exists
+
 ### In Progress
-- **Phase 6** — Accept / Reject apply flow with undo/redo
 - **Phase 7** — Error handling polish and edge case coverage
 
 ---
