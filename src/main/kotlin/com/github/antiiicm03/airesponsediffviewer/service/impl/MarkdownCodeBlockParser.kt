@@ -6,7 +6,7 @@ import com.github.antiiicm03.airesponsediffviewer.service.CodeBlockParser
 
 class MarkdownCodeBlockParser : CodeBlockParser {
     private val codeBlockRegex = Regex (
-        pattern = "```(\\w*)\\n([\\s\\S]*?)```",
+        pattern = "```(\\w*?)\\s*\\n([\\s\\S]*?)```",
         option = RegexOption.MULTILINE
     )
 

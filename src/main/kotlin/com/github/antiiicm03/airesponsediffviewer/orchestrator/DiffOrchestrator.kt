@@ -16,45 +16,64 @@ class DiffOrchestrator(
     private val parser: CodeBlockParser,
     private val resolver: ContextResolver,
     private val viewer: DiffViewerManager,
-    private val applyService : FileApplyService,
+    private val applyService: FileApplyService,
     private val errorHandler: ErrorHandler
 ) {
     private var currentSession: DiffSession? = null
 
-    fun run(response: AiResponse) {
+    fun run(response: AiResponse): Boolean {
         val blocks = parser.extractCodeBlocks(response)
-
         if (blocks.isEmpty()) {
             errorHandler.handle(DiffViewerError.NoCodeBlockFound)
-            return
+            return false
         }
 
         val target = resolver.resolveTarget()
-
         if (target == null) {
             errorHandler.handle(DiffViewerError.NoTargetFileFound)
-            return
+            return false
         }
 
         if (resolver is EditorContextResolver && applyService is IntelliJFileApplyService) {
-            resolver.lastResolvedDocument?.let { applyService.setTargetDocument(it)}
+            resolver.lastResolvedDocument?.let { applyService.setTargetDocument(it) }
         }
+
+        val firstBlock = blocks.first()
 
         val session = DiffSession(
             originalCode = target.code,
-            suggestedCode = blocks.first().content,
+            suggestedCode = firstBlock.content,
             filePath = target.filePath,
-            language = blocks.first().language
+            language = firstBlock.language
         )
+
+        if (session.originalCode.trimIndent().trim() ==
+            session.suggestedCode.trimIndent().trim()) {
+            errorHandler.handle(DiffViewerError.IdenticalContent)
+            return false
+        }
+
+        val fileExtension = target.filePath?.substringAfterLast(".")
+        val suggestionLanguage = firstBlock.language
+        if (fileExtension != null && suggestionLanguage != null &&
+            !isLanguageCompatible(fileExtension, suggestionLanguage)) {
+            errorHandler.handle(
+                DiffViewerError.LanguageMismatch(
+                    fileLanguage = fileExtension,
+                    suggestionLanguage = suggestionLanguage
+                )
+            )
+        }
 
         currentSession = session
         viewer.openDiff(session)
+        return true
     }
 
     fun applyChanges() {
         val session = currentSession
         if (session == null) {
-            errorHandler.handle(DiffViewerError.NoTargetFileFound)
+            errorHandler.handle(DiffViewerError.NoActiveDiffSession)
             return
         }
         applyService.applyChanges(session)
@@ -64,5 +83,22 @@ class DiffOrchestrator(
     fun rejectChanges() {
         applyService.rejectChanges()
         currentSession = null
+    }
+
+    private fun isLanguageCompatible(fileExtension: String, language: String): Boolean {
+        val compatibilityMap = mapOf(
+            "kt" to listOf("kotlin", "kt"),
+            "java" to listOf("java"),
+            "py" to listOf("python", "py"),
+            "js" to listOf("javascript", "js"),
+            "ts" to listOf("typescript", "ts"),
+            "go" to listOf("go", "golang"),
+            "rs" to listOf("rust", "rs"),
+            "cs" to listOf("csharp", "cs", "c#"),
+            "cpp" to listOf("cpp", "c++"),
+            "c" to listOf("c")
+        )
+        val compatible = compatibilityMap[fileExtension.lowercase()] ?: return true
+        return language.lowercase() in compatible
     }
 }
