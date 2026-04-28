@@ -98,6 +98,9 @@ class AiDiffPanel(private val project: Project){
     }
 
     private fun onCompareClicked() {
+        acceptButton.isEnabled = false
+        rejectButton.isEnabled = false
+
         val rawText = responseTextArea.text.trim()
 
         if (rawText.isBlank()) {
@@ -105,23 +108,25 @@ class AiDiffPanel(private val project: Project){
             statusLabel.text = "Error: empty response"
             return
         }
-        orchestrator.run(AiResponse(rawText))
+        val success = orchestrator.run(AiResponse(rawText))
 
-        acceptButton.isEnabled = true
-        rejectButton.isEnabled = true
-        statusLabel.text = "Review the diff, then Accept or Reject"
+        if(success) {
+            acceptButton.isEnabled = true
+            rejectButton.isEnabled = true
+            statusLabel.text = "Review the diff, then Accept or Reject"
+        }
     }
 
     private fun onAcceptClicked() {
         orchestrator.applyChanges()
         resetButtons()
-        statusLabel.text = "Changes applied"
+        statusLabel.text = "Changes applied - Ctrl+Z to undo"
     }
 
     private fun onRejectClicked() {
         orchestrator.rejectChanges()
         resetButtons()
-        statusLabel.text = "Changes rejected"
+        statusLabel.text = "Changes rejected. No modifications were applied."
     }
 
     private fun resetButtons() {
